@@ -26,6 +26,7 @@ public class ConsoleApp {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        System.out.println("=== Printing the graph ===");
         for (String node : graph.getVertices()) {
             System.out.println("Node: " + node);
             for (Edge e : graph.getNeighborEdge(node)) {
@@ -33,11 +34,14 @@ public class ConsoleApp {
             }
         }
         JsonTrafficStore traffic=new JsonTrafficStore(graph);
+        System.out.println();
+        System.out.println("All Traffic Multipliers for hour 10:");
         System.out.println(traffic.getMultipliersForHour(10));
-
+        System.out.println();
+        System.out.println("Shortest path from N1 to N13");
         Dijkstra ds=new Dijkstra(graph, traffic);
         System.out.println(ds.findShortestPath("N1", "N13", 2));
-
+        System.out.println();
         List<String> mandatoryIds = List.of("N1", "N9", "N5", "N17");
         List<Vertex> mandatoryVertices = new ArrayList<>();
         for (String id : mandatoryIds) {
@@ -48,7 +52,6 @@ public class ConsoleApp {
         DistanceMatrixBuilder builder = new DistanceMatrixBuilder(graph, traffic, 5);
         PathCache cache = builder.build(mandatoryVertices);
 
-        // 5) Print matrix and paths
         PrintUtils.printMandatoryDistanceMatrix(mandatoryIds, cache);
     }
 }
