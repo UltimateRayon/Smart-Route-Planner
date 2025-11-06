@@ -1,4 +1,4 @@
-package com.example.srp.algorithms;
+package com.example.srp.algorithms.pathfinding;
 
 import com.example.srp.models.Graph;
 import com.example.srp.models.Path;
