@@ -1,5 +1,7 @@
 package com.example.srp.app;
 
+import com.example.srp.algorithms.balancing.LoadBalancer;
+import com.example.srp.algorithms.balancing.RouteEvaluator;
 import com.example.srp.algorithms.clustering.ClusterAssigner;
 import com.example.srp.algorithms.clustering.GreedyBalancedAssigner;
 import com.example.srp.algorithms.pathfinding.DistanceMatrixBuilder;
@@ -11,9 +13,11 @@ import com.example.srp.io.MapParser;
 import com.example.srp.models.Graph;
 import com.example.srp.models.NodeCluster;
 import com.example.srp.models.Vertex;
+import com.example.srp.models.RouteInfo;
 import com.example.srp.traffic.JsonTrafficStore;
 import com.example.srp.traffic.TrafficStore;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -59,56 +63,87 @@ public class ConsoleApp {
             }
             System.out.println();
 
-            // Phase E: TSP routing for each cluster
+            // Phase E: TSP routing
             System.out.println("=== Phase E: TSP Route Optimization ===");
-
-            // Create TSP solvers
             TSPSolver nearestNeighbor = new NearestNeighborTSP(pathCache);
-            TSPSolver twoOpt = new TwoOptTSP(pathCache, nearestNeighbor);
+            TSPSolver tspSolver = new TwoOptTSP(pathCache, nearestNeighbor);
 
+            List<List<String>> optimizedTours = new ArrayList<>();
             for (NodeCluster cluster : clusters) {
-                System.out.println("Bus " + cluster.getBusId() + ":");
+                List<String> tour = tspSolver.solveTSP(cluster.getAllNodes(), startNode);
+                optimizedTours.add(tour);
+                System.out.println("  Bus " + cluster.getBusId() + " route: " + tour);
+            }
+            System.out.println();
 
-                List<String> nodes = cluster.getAllNodes();
-                System.out.println("  Nodes to visit: " + nodes);
+            // Phase F: Distance computation and balance check
+            System.out.println("=== Phase F: Distance Computation & Balance Check ===");
+            RouteEvaluator evaluator = new RouteEvaluator(pathCache);
 
-                // Solve with Nearest Neighbor
-                List<String> nnTour = nearestNeighbor.solveTSP(nodes, startNode);
-                double nnDistance = nearestNeighbor.calculateTourDistance(nnTour);
-                System.out.println("  Nearest Neighbor tour: " + nnTour);
-                System.out.println("  NN Distance: " + String.format("%.2f", nnDistance));
+            // Evaluate all routes
+            List<RouteInfo> routes = new ArrayList<>();
+            for (int i = 0; i < clusters.size(); i++) {
+                NodeCluster cluster = clusters.get(i);
+                List<String> tour = optimizedTours.get(i);
+                RouteInfo routeInfo = evaluator.evaluateRoute(cluster.getBusId(), tour, currentHour);
+                routes.add(routeInfo);
+            }
 
-                // Improve with 2-Opt
-                List<String> optimizedTour = twoOpt.solveTSP(nodes, startNode);
-                double optimizedDistance = twoOpt.calculateTourDistance(optimizedTour);
-                System.out.println("  2-Opt optimized tour: " + optimizedTour);
-                System.out.println("  Optimized Distance: " + String.format("%.2f", optimizedDistance));
-
-                double improvement = ((nnDistance - optimizedDistance) / nnDistance) * 100;
-                System.out.println("  Improvement: " + String.format("%.2f%%", improvement));
+            // Display results
+            System.out.println("\n📊 Route Evaluation Results:\n");
+            for (RouteInfo route : routes) {
+                System.out.println("🚌 Bus " + route.getBusId() + ":");
+                System.out.println("   Route: " + route.getTour());
+                System.out.println("   Distance: " + String.format("%.2f km", route.getTotalDistance()));
+                System.out.println("   Nodes visited: " + route.getNodeCount());
                 System.out.println();
             }
 
-            // Summary
-            System.out.println("=== Summary ===");
-            double totalDistance = 0.0;
-            double maxDistance = 0.0;
+            // Calculate metrics
+            double makespan = evaluator.calculateMakespan(routes);
+            double totalDistance = evaluator.calculateTotalDistance(routes);
+            double imbalance = evaluator.calculateImbalanceRatio(routes);
 
-            for (NodeCluster cluster : clusters) {
-                List<String> tour = twoOpt.solveTSP(cluster.getAllNodes(), startNode);
-                double distance = twoOpt.calculateTourDistance(tour);
-                totalDistance += distance;
-                maxDistance = Math.max(maxDistance, distance);
+            System.out.println("📈 Overall Metrics:");
+            System.out.println("   Makespan (longest route): " + String.format("%.2f km", makespan));
+            System.out.println("   Total distance (all buses): " + String.format("%.2f km", totalDistance));
+            System.out.println("   Load imbalance ratio: " + String.format("%.2fx", imbalance));
 
-                System.out.println("Bus " + cluster.getBusId() +
-                        " final distance: " + String.format("%.2f", distance));
+            // Check if balanced
+            double balanceThreshold = 1.3; // 30% imbalance acceptable
+            boolean isBalanced = imbalance <= balanceThreshold;
+            System.out.println("   Status: " + (isBalanced ? "✓ BALANCED" : "✗ IMBALANCED"));
+            System.out.println();
+
+            // Optional: Try rebalancing if needed
+            if (!isBalanced) {
+                System.out.println("=== Attempting Rebalancing ===");
+                LoadBalancer balancer = new LoadBalancer(pathCache, assigner, tspSolver,
+                        evaluator, balanceThreshold);
+
+                List<RouteInfo> rebalancedRoutes = balancer.rebalance(clusters, startNode,
+                        currentHour, 5);
+
+                System.out.println("\n📊 After Rebalancing:\n");
+                for (RouteInfo route : rebalancedRoutes) {
+                    System.out.println("🚌 Bus " + route.getBusId() + ":");
+                    System.out.println("   Route: " + route.getTour());
+                    System.out.println("   Distance: " + String.format("%.2f km", route.getTotalDistance()));
+                    System.out.println("   Nodes visited: " + route.getNodeCount());
+                    System.out.println();
+                }
+                String report = balancer.generateBalanceReport(rebalancedRoutes);
+                System.out.println(report);
             }
 
-            System.out.println("Total distance (all buses): " + String.format("%.2f", totalDistance));
-            System.out.println("Makespan (longest route): " + String.format("%.2f", maxDistance));
+            // Summary
+            System.out.println();
+            System.out.println("╔════════════════════════════════════════════════╗");
+            System.out.println("║              Process Complete! ✓               ║");
+            System.out.println("╚════════════════════════════════════════════════╝");
 
         } catch (Exception e) {
-            System.err.println("Error: " + e.getMessage());
+            System.err.println("❌ Error: " + e.getMessage());
             e.printStackTrace();
         }
     }
