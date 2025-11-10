@@ -144,7 +144,7 @@ public class MainWindow extends JFrame {
 
             // Pass vertex IDs to selection panel
             Set<String> vertexIds = new HashSet<>();
-            for (Vertex v : graph.getVertices()) vertexIds.add(v.getId());
+            for (Vertex v : graph.getAllVertices()) vertexIds.add(v.getId());
             vertexSelectionPanel.setVertices(vertexIds);
 
             // Refresh UI
@@ -165,7 +165,7 @@ public class MainWindow extends JFrame {
             // Just show vertices, edges, mandatory nodes for now
             int totalEdges = 0;
             Set<String> countedEdges = new HashSet<>();
-            for (Vertex vertex : graph.getVertices()) {
+            for (Vertex vertex : graph.getAllVertices()) {
                 for (Edge edge : graph.getNeighborEdge(vertex.getId())) {
                     String key = edge.getFrom() + "-" + edge.getTo();
                     String revKey = edge.getTo() + "-" + edge.getFrom();
@@ -178,7 +178,7 @@ public class MainWindow extends JFrame {
             }
 
             JOptionPane.showMessageDialog(this,
-                    selectedMap + " loaded!\nVertices: " + graph.getVertices().size() +
+                    selectedMap + " loaded!\nVertices: " + graph.getAllVertices().size() +
                             "\nEdges: " + totalEdges +
                              String.join(", ", mandatoryNodes)
                             ,

@@ -27,7 +27,7 @@ public class Dijkstra {
         Map<String, String> parent = new HashMap<>();
         Set<String> visited = new HashSet<>();
 
-        for (var vtxId : graph.getVertices()) {
+        for (var vtxId : graph.getAllVertices()) {
             distance.put(vtxId.getId(), Double.POSITIVE_INFINITY);
         }
 

@@ -25,7 +25,7 @@ public class Graph {
         return adjList.getOrDefault(node, new ArrayList<>());
     }
 
-    public Collection<Vertex> getVertices() {
+    public Collection<Vertex> getAllVertices() {
         return vertices.values();
     }
 

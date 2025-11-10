@@ -1,0 +1,51 @@
+{
+  "routes" : [ {
+    "busId" : 0,
+    "fullPath" : [ "N1", "N2", "N3", "N4", "N5", "N4", "N3", "N2", "N1" ],
+    "hour" : 8,
+    "totalDistance" : 43.86,
+    "waypoints" : [ "N1", "N2", "N5", "N1" ],
+    "totalNodes" : 9,
+    "segments" : [ {
+      "path" : [ "N1", "N2" ],
+      "distance" : 4.8,
+      "from" : "N1",
+      "to" : "N2"
+    }, {
+      "path" : [ "N2", "N3", "N4", "N5" ],
+      "distance" : 17.13,
+      "from" : "N2",
+      "to" : "N5"
+    }, {
+      "path" : [ "N5", "N4", "N3", "N2", "N1" ],
+      "distance" : 21.93,
+      "from" : "N5",
+      "to" : "N1"
+    } ]
+  }, {
+    "busId" : 1,
+    "fullPath" : [ "N1", "N2", "N3", "N4", "N3", "N2", "N1" ],
+    "hour" : 8,
+    "totalDistance" : 32.26,
+    "waypoints" : [ "N1", "N3", "N4", "N1" ],
+    "totalNodes" : 7,
+    "segments" : [ {
+      "path" : [ "N1", "N2", "N3" ],
+      "distance" : 11.0,
+      "from" : "N1",
+      "to" : "N3"
+    }, {
+      "path" : [ "N3", "N4" ],
+      "distance" : 5.13,
+      "from" : "N3",
+      "to" : "N4"
+    }, {
+      "path" : [ "N4", "N3", "N2", "N1" ],
+      "distance" : 16.13,
+      "from" : "N4",
+      "to" : "N1"
+    } ]
+  } ],
+  "totalBuses" : 2,
+  "timestamp" : "Mon Nov 10 19:12:43 GMT+06:00 2025"
+}

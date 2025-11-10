@@ -23,6 +23,10 @@ public class RouteInfo {
         return totalDistance;
     }
 
+    public int getHour() {
+        return hour;
+    }
+
     public int getNodeCount() {
         return tour.size()-1;
     }

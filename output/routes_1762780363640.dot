@@ -1,0 +1,24 @@
+digraph RouteVisualization {
+  rankdir=LR;
+  node [shape=circle];
+
+  // Bus 0 route
+  "N1" -> "N2" [color=red, penwidth=2, label="Bus 0"];
+  "N2" -> "N3" [color=red, penwidth=2, label="Bus 0"];
+  "N3" -> "N4" [color=red, penwidth=2, label="Bus 0"];
+  "N4" -> "N5" [color=red, penwidth=2, label="Bus 0"];
+  "N5" -> "N4" [color=red, penwidth=2, label="Bus 0"];
+  "N4" -> "N3" [color=red, penwidth=2, label="Bus 0"];
+  "N3" -> "N2" [color=red, penwidth=2, label="Bus 0"];
+  "N2" -> "N1" [color=red, penwidth=2, label="Bus 0"];
+
+  // Bus 1 route
+  "N1" -> "N2" [color=blue, penwidth=2, label="Bus 1"];
+  "N2" -> "N3" [color=blue, penwidth=2, label="Bus 1"];
+  "N3" -> "N4" [color=blue, penwidth=2, label="Bus 1"];
+  "N4" -> "N3" [color=blue, penwidth=2, label="Bus 1"];
+  "N3" -> "N2" [color=blue, penwidth=2, label="Bus 1"];
+  "N2" -> "N1" [color=blue, penwidth=2, label="Bus 1"];
+
+  "N1" [shape=doublecircle, style=filled, fillcolor=lightgreen];
+}

@@ -5,5 +5,5 @@ import com.example.srp.models.NodeCluster;
 import java.util.List;
 
 public interface ClusterAssigner {
-    List<NodeCluster> assignNodes(String startNode, List<String> mandatoryNodes, int busNo);
+    List<NodeCluster> assignNodes(List<String> mandatoryNodes, String startNode, int busNo);
 }

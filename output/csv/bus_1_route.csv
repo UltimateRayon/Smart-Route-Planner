@@ -1,0 +1,9 @@
+Step,From,To,Distance(km),Path
+1,N1,N3,11.00,"N1 -> N2 -> N3"
+2,N3,N4,5.13,"N3 -> N4"
+3,N4,N1,16.13,"N4 -> N3 -> N2 -> N1"
+
+Summary
+Total Distance,32.26 km
+Total Nodes,7
+Waypoints,"N1,N3,N4,N1"

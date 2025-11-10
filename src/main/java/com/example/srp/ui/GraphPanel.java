@@ -37,7 +37,7 @@ public class GraphPanel extends JPanel {
         Random rand = new Random();
         int width = getWidth() > 0 ? getWidth() : 800;
         int height = getHeight() > 0 ? getHeight() : 600;
-        for (Vertex v : graph.getVertices()) {
+        for (Vertex v : graph.getAllVertices()) {
             int x = rand.nextInt(width - VERTEX_DIAMETER) + VERTEX_DIAMETER / 2;
             int y = rand.nextInt(height - VERTEX_DIAMETER) + VERTEX_DIAMETER / 2;
             vertexPositions.put(v.getId(), new Point(x, y));
@@ -49,21 +49,21 @@ public class GraphPanel extends JPanel {
         int width = getWidth() > 0 ? getWidth() : 800;
         int height = getHeight() > 0 ? getHeight() : 600;
         double area = width * height;
-        double k = Math.sqrt(area / (double) graph.getVertices().size());
+        double k = Math.sqrt(area / (double) graph.getAllVertices().size());
         double t = width / 10.0; // initial temperature
 
         for (int iter = 0; iter < iterations; iter++) {
             Map<String, Double> dx = new HashMap<>();
             Map<String, Double> dy = new HashMap<>();
-            for (Vertex v : graph.getVertices()) {
+            for (Vertex v : graph.getAllVertices()) {
                 dx.put(v.getId(), 0.0);
                 dy.put(v.getId(), 0.0);
             }
 
             // Repulsive forces
-            for (Vertex v : graph.getVertices()) {
+            for (Vertex v : graph.getAllVertices()) {
                 Point p1 = vertexPositions.get(v.getId());
-                for (Vertex u : graph.getVertices()) {
+                for (Vertex u : graph.getAllVertices()) {
                     if (v == u) continue;
                     Point p2 = vertexPositions.get(u.getId());
                     double dxu = p1.x - p2.x;
@@ -76,7 +76,7 @@ public class GraphPanel extends JPanel {
             }
 
             // Attractive forces
-            for (Vertex v : graph.getVertices()) {
+            for (Vertex v : graph.getAllVertices()) {
                 for (Edge e : graph.getNeighborEdge(v.getId())) {
                     Point p1 = vertexPositions.get(e.getFrom());
                     Point p2 = vertexPositions.get(e.getTo());
@@ -92,7 +92,7 @@ public class GraphPanel extends JPanel {
             }
 
             // Update positions
-            for (Vertex v : graph.getVertices()) {
+            for (Vertex v : graph.getAllVertices()) {
                 Point p = vertexPositions.get(v.getId());
                 double dxt = dx.get(v.getId());
                 double dyt = dy.get(v.getId());
@@ -122,7 +122,7 @@ public class GraphPanel extends JPanel {
 
         // Draw edges
         g2.setColor(Color.BLACK);
-        for (Vertex v : graph.getVertices()) {
+        for (Vertex v : graph.getAllVertices()) {
             for (Edge e : graph.getNeighborEdge(v.getId())) {
                 Point p1 = vertexPositions.get(e.getFrom());
                 Point p2 = vertexPositions.get(e.getTo());
@@ -133,7 +133,7 @@ public class GraphPanel extends JPanel {
         }
 
         // Draw vertices
-        for (Vertex v : graph.getVertices()) {
+        for (Vertex v : graph.getAllVertices()) {
             Point p = vertexPositions.get(v.getId());
             if (p != null) {
                 g2.setColor(Color.ORANGE);

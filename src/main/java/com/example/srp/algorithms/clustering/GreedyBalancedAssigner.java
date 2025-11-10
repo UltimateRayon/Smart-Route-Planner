@@ -25,7 +25,7 @@ public class GreedyBalancedAssigner implements ClusterAssigner {
     }
 
     @Override
-    public List<NodeCluster> assignNodes(String startNode, List<String> mandatoryNodes, int k) {
+    public List<NodeCluster> assignNodes(List<String> mandatoryNodes, String startNode, int k) {
         if (k <= 0) {
             throw new IllegalArgumentException("Number of buses must be positive");
         }
