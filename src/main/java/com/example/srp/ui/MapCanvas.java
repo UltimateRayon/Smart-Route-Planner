@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Comparator;
 
 public class MapCanvas extends JPanel {
 
@@ -78,7 +79,7 @@ public class MapCanvas extends JPanel {
         final int finalMaxLen = maxLen;
 
         // Timer to increment step every 35ms
-        animationTimer = new Timer(535, e -> {
+        animationTimer = new Timer(35, e -> {
             animationStep++;
             repaint();
             if (animationStep >= finalMaxLen) {
@@ -142,6 +143,9 @@ public class MapCanvas extends JPanel {
 
         // 3. Draw Vertices
         drawVertices(g2);
+
+        // 4. Draw Legend (New)
+        drawLegend(g2);
     }
 
     private void drawOffsetRoutes(Graphics2D g2) {
@@ -216,6 +220,54 @@ public class MapCanvas extends JPanel {
             g2.draw(new Ellipse2D.Double(p.x - offset, p.y - offset, size, size));
 
             drawLabel(g2, v.getId(), p.x, p.y - offset - 4, isStart || isWaypoint);
+        }
+    }
+
+    // --- NEW METHOD: Draw Legend on Top Left ---
+    private void drawLegend(Graphics2D g2) {
+        if (routes == null || routes.isEmpty()) return;
+
+        // Layout constants
+        int padding = 10;
+        int rowHeight = 20;
+        int titleHeight = 25;
+        int boxWidth = 110;
+        int boxHeight = padding * 2 + titleHeight + (routes.size() * rowHeight);
+
+        int x = 10;
+        int y = 600;
+
+        // Draw Legend Background (Semi-transparent)
+        g2.setColor(new Color(255, 255, 255, 230));
+        g2.fillRoundRect(x, y, boxWidth, boxHeight, 10, 10);
+        g2.setColor(Color.GRAY);
+        g2.setStroke(new BasicStroke(1.0f));
+        g2.drawRoundRect(x, y, boxWidth, boxHeight, 10, 10);
+
+        // Draw Title
+        g2.setColor(Color.BLACK);
+        g2.setFont(new Font("SansSerif", Font.BOLD, 12));
+        g2.drawString("Route Legend", x + padding, y + padding + 12);
+
+        // Draw Items
+        int currentY = y + padding + titleHeight + 10; // start drawing rows
+        g2.setFont(new Font("SansSerif", Font.PLAIN, 12));
+
+        // Create a sorted list so buses appear in order (Bus 0, Bus 1...)
+        List<DetailedRoute> sortedRoutes = new ArrayList<>(routes);
+        sortedRoutes.sort(Comparator.comparingInt(DetailedRoute::getBusId));
+
+        for (DetailedRoute route : sortedRoutes) {
+            // Draw Color Line/Box
+            g2.setColor(BUS_COLORS[route.getBusId() % BUS_COLORS.length]);
+            g2.setStroke(new BasicStroke(3.0f));
+            g2.drawLine(x + padding, currentY - 5, x + padding + 20, currentY - 5);
+
+            // Draw Text
+            g2.setColor(Color.BLACK);
+            g2.drawString("Bus " + route.getBusId(), x + padding + 30, currentY);
+
+            currentY += rowHeight;
         }
     }
 

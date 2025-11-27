@@ -100,7 +100,7 @@ public class SRPApplication extends JFrame {
 
         // --- CHANGED: JComboBox instead of JTextField ---
         // Pre-fill with common map names, but allow typing
-        String[] defaultMaps = {"map-1", "test_map", "city_map", "dense_grid"};
+        String[] defaultMaps = {"map-1", "dhaka_map", "dhaka_map_spread", "dhaka_map_spread2"};
         JComboBox<String> mapNameCombo = new JComboBox<>(defaultMaps);
         mapNameCombo.setEditable(true); // Allow user to type new names
         mapNameCombo.setSelectedItem("");
