@@ -18,7 +18,7 @@ public class RouteEvaluator {
         return new RouteInfo(busId, tour, totalDistance, hour);
     }
 
-    private double calculateTourDistance(List<String> tour) {
+    public double calculateTourDistance(List<String> tour) {
         if(tour.size()<2) {
             return 0.0;
         }

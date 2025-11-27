@@ -26,7 +26,7 @@ public class LoadBalancer {
         this.imbalanceThreshold=imbalanceThreshold;
     }
 
-    LoadBalancer(PathCache pathCache, ClusterAssigner clusterAssigner, TSPSolver tspSolver, RouteEvaluator evaluator) {
+    public LoadBalancer(PathCache pathCache, ClusterAssigner clusterAssigner, TSPSolver tspSolver, RouteEvaluator evaluator) {
         this(pathCache, clusterAssigner, tspSolver, evaluator, 1.3);
     }
 

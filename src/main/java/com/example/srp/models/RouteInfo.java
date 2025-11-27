@@ -28,7 +28,7 @@ public class RouteInfo {
     }
 
     public int getNodeCount() {
-        return tour.size()-1;
+        return (tour.isEmpty())? 0 : tour.size()-1;
     }
 
     public List<String> getTour() {
