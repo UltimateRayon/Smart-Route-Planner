@@ -117,23 +117,23 @@ Maps are defined in JSON format:
 
 ## Algorithms
 
-### Phase C: Shortest Paths
+### Phase A: Shortest Paths
 - **Dijkstra's Algorithm**: Finds shortest paths considering traffic
 - **PathCache**: Stores pre-computed pairwise distances
 
-### Phase D: Clustering
+### Phase B: Clustering
 - **Greedy Balanced Assignment**: Assigns nodes to buses
 - Balances distance minimization with workload equity
 
-### Phase E: Route Optimization
+### Phase C: Route Optimization
 - **Nearest Neighbor**: Fast greedy TSP heuristic
 - **2-Opt**: Iterative improvement algorithm
 
-### Phase F: Load Balancing
+### Phase D: Load Balancing
 - **Imbalance Detection**: Calculates max/min ratio
 - **Rebalancing**: Optionally redistributes nodes
 
-### Phase G: Route Expansion
+### Phase E: Route Expansion
 - **Detail Generation**: Expands waypoints to full paths
 - **Export**: Multiple output formats
 
