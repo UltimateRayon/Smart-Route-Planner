@@ -124,7 +124,7 @@ Maps are defined in JSON format:
       "from": "N1",
       "to": "N2",
       "distance": 2.4,
-      "traffic": [1.0, 1.2, 1.5, ..., 1.0]
+      "traffic": [1.0, 1.2, 1.5, "...", 1.0]
     }
   ]
 }
