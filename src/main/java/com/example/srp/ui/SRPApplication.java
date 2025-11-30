@@ -98,7 +98,6 @@ public class SRPApplication extends JFrame {
         JLabel desc = new JLabel("Select or type map name (e.g., 'test_map')", SwingConstants.CENTER);
         desc.setForeground(new Color(200, 200, 200));
 
-        // --- CHANGED: JComboBox instead of JTextField ---
         // Pre-fill with common map names, but allow typing
         String[] defaultMaps = {"map-1", "dhaka_map", "dhaka_map_spread", "dhaka_map_spread2"};
         JComboBox<String> mapNameCombo = new JComboBox<>(defaultMaps);
@@ -190,7 +189,7 @@ public class SRPApplication extends JFrame {
 
         inputForm.add(labelPanel, gbc);
 
-        // --- NEW CHECKBOX LIST IMPLEMENTATION ---
+        // Checkbox
         checkBoxPanel = new JPanel();
         checkBoxPanel.setLayout(new BoxLayout(checkBoxPanel, BoxLayout.Y_AXIS));
         checkBoxPanel.setBackground(COL_BG_LIGHT); // Lighter gray for list background
@@ -274,7 +273,7 @@ public class SRPApplication extends JFrame {
         return panel;
     }
 
-    // --- Helper Methods for Styling ---
+    // Styling
 
     private JLabel createLabel(String text) {
         JLabel l = new JLabel(text);
@@ -298,14 +297,14 @@ public class SRPApplication extends JFrame {
         }
     }
 
-    // --- Logic Implementation ---
+    // Logic
 
     private void loadMap(String mapName) {
         try {
             MapParser parser = new MapParser();
             currentGraph = parser.parse(mapName);
 
-            // Build Traffic Store immediately
+            // Build Traffic Store
             trafficStore = new JsonTrafficStore(currentGraph);
 
             // Populate Start Node Combo
@@ -314,7 +313,7 @@ public class SRPApplication extends JFrame {
             nodeIds.sort(String::compareTo);
             startNodeCombo.setModel(new DefaultComboBoxModel<>(nodeIds));
 
-            // --- POPULATE CHECKBOXES (Styled) ---
+            // Checkbox options
             checkBoxPanel.removeAll();
             nodeCheckboxes.clear();
 

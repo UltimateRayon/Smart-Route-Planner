@@ -12,8 +12,10 @@ import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Comparator;
 
 public class MapCanvas extends JPanel {
@@ -24,6 +26,12 @@ public class MapCanvas extends JPanel {
 
     // Tracks which buses use a specific edge (for parallel line drawing)
     private Map<String, List<Integer>> segmentUsageMap;
+
+    // Set of bus IDs that the user has chosen to hide
+    private Set<Integer> hiddenBuses;
+
+    // UI Components
+    private JPanel legendPanel;
 
     // Animation Controls
     private int animationStep = Integer.MAX_VALUE;
@@ -43,23 +51,64 @@ public class MapCanvas extends JPanel {
     public MapCanvas() {
         this.screenCoords = new HashMap<>();
         this.segmentUsageMap = new HashMap<>();
+        this.hiddenBuses = new HashSet<>();
+
         setBackground(Color.WHITE);
         setBorder(BorderFactory.createLineBorder(Color.GRAY));
+
+        setLayout(new GridBagLayout());
+
+        initLegendPanel();
+    }
+
+    private void initLegendPanel() {
+        legendPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                // Semi-transparent white background
+                g.setColor(new Color(255, 255, 255, 230));
+                g.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                super.paintComponent(g);
+
+                // Border
+                g.setColor(Color.GRAY);
+                g.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 10, 10);
+            }
+        };
+        legendPanel.setLayout(new BoxLayout(legendPanel, BoxLayout.Y_AXIS));
+        legendPanel.setOpaque(false); // Let custom paintComponent handle bg
+        legendPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        legendPanel.setVisible(false);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.anchor = GridBagConstraints.SOUTHWEST; // Position: BOTTOM LEFT
+        gbc.insets = new Insets(10, 10, 10, 10);   // Margin from edges
+
+        add(legendPanel, gbc);
     }
 
     public void setGraph(Graph graph) {
         this.graph = graph;
         this.routes = null;
         this.segmentUsageMap.clear();
+        this.hiddenBuses.clear();
+        this.legendPanel.setVisible(false);
         stopAnimation();
         repaint();
     }
 
-    // Standard static set (shows immediately)
+    // Initial route
     public void setRoutes(List<DetailedRoute> routes) {
         stopAnimation();
         this.routes = routes;
         this.animationStep = Integer.MAX_VALUE; // Show everything
+        this.hiddenBuses.clear(); // Reset hidden state on new calculation
+
+        rebuildLegend();
         analyzeSegmentUsage();
         repaint();
     }
@@ -69,6 +118,9 @@ public class MapCanvas extends JPanel {
         stopAnimation();
         this.routes = routes;
         this.animationStep = 0;
+        this.hiddenBuses.clear();
+
+        rebuildLegend();
         analyzeSegmentUsage();
 
         // Calculate max steps needed
@@ -79,7 +131,7 @@ public class MapCanvas extends JPanel {
         final int finalMaxLen = maxLen;
 
         // Timer to increment step every 35ms
-        animationTimer = new Timer(35, e -> {
+        animationTimer = new Timer(350, e -> { // Delay time
             animationStep++;
             repaint();
             if (animationStep >= finalMaxLen) {
@@ -87,6 +139,89 @@ public class MapCanvas extends JPanel {
             }
         });
         animationTimer.start();
+    }
+
+    private void rebuildLegend() {
+        legendPanel.removeAll();
+
+        if (routes == null || routes.isEmpty()) {
+            legendPanel.setVisible(false);
+            return;
+        }
+
+        JLabel title = new JLabel("Route Legend");
+        title.setFont(new Font("SansSerif", Font.BOLD, 12));
+        title.setAlignmentX(Component.LEFT_ALIGNMENT);
+        legendPanel.add(title);
+        legendPanel.add(Box.createVerticalStrut(5));
+
+        List<DetailedRoute> sortedRoutes = new ArrayList<>(routes);
+        sortedRoutes.sort(Comparator.comparingInt(DetailedRoute::getBusId));
+
+        for (DetailedRoute route : sortedRoutes) {
+            int busId = route.getBusId();
+            Color color = BUS_COLORS[busId % BUS_COLORS.length];
+
+            JCheckBox cb = new JCheckBox("Bus " + busId);
+            cb.setSelected(true);
+            cb.setOpaque(false);
+            cb.setFocusPainted(false);
+            cb.setFont(new Font("SansSerif", Font.PLAIN, 12));
+            cb.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            // Custom Icon to show color
+            cb.setIcon(createColorIcon(color, false));
+            cb.setSelectedIcon(createColorIcon(color, true));
+
+            cb.addActionListener(e -> {
+                if (cb.isSelected()) {
+                    hiddenBuses.remove(busId);
+                } else {
+                    hiddenBuses.add(busId);
+                }
+                // Re-calculate overlaps so lines shift if a neighbor is hidden
+                analyzeSegmentUsage();
+                repaint();
+            });
+
+            legendPanel.add(cb);
+        }
+
+        legendPanel.setVisible(true);
+        legendPanel.revalidate();
+    }
+
+    // Helper to create checkbox icons
+    private Icon createColorIcon(Color c, boolean selected) {
+        int size = 12;
+        return new Icon() {
+            public int getIconWidth() { return size + 6; } // Extra spacing
+            public int getIconHeight() { return size; }
+            public void paintIcon(Component c, Graphics g, int x, int y) {
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // Draw Box
+                if (selected) {
+                    g2.setColor(Color.LIGHT_GRAY); // Checked box with Color
+                } else {
+                    g2.setColor(Color.GREEN); // Unchecked box
+                }
+                g2.drawRect(x, y, size, size);
+
+                // Draw Inner Color
+                if (selected) {
+                    g2.setColor((Color) ((JComponent)c).getClientProperty("busColor")); // Use bound color
+                }
+
+                // Draw Color Line next to box
+                g2.setColor(MapCanvas.this.BUS_COLORS[
+                        Integer.parseInt(((JCheckBox)c).getText().replace("Bus ", "")) % BUS_COLORS.length
+                        ]);
+                g2.setStroke(new BasicStroke(3f));
+                g2.drawLine(x + size + 4, y + size/2, x + size + 14, y + size/2);
+            }
+        };
     }
 
     private void stopAnimation() {
@@ -100,6 +235,9 @@ public class MapCanvas extends JPanel {
         if (routes == null) return;
 
         for (DetailedRoute route : routes) {
+            // Skip hidden buses in the overlap calculation
+            if (hiddenBuses.contains(route.getBusId())) continue;
+
             List<String> nodes = route.getFullNodeSequence();
             for (int i = 0; i < nodes.size() - 1; i++) {
                 String u = nodes.get(i);
@@ -143,19 +281,18 @@ public class MapCanvas extends JPanel {
 
         // 3. Draw Vertices
         drawVertices(g2);
-
-        // 4. Draw Legend (New)
-        drawLegend(g2);
     }
 
     private void drawOffsetRoutes(Graphics2D g2) {
         g2.setStroke(new BasicStroke(2.5f));
 
         for (DetailedRoute route : routes) {
+            // Skip drawing if bus is hidden
+            if (hiddenBuses.contains(route.getBusId())) continue;
+
             g2.setColor(BUS_COLORS[route.getBusId() % BUS_COLORS.length]);
             List<String> sequence = route.getFullNodeSequence();
 
-            // KEY CHANGE: Limit the loop by animationStep
             int drawLimit = Math.min(sequence.size() - 1, animationStep);
 
             for (int i = 0; i < drawLimit; i++) {
@@ -223,54 +360,6 @@ public class MapCanvas extends JPanel {
         }
     }
 
-    // --- NEW METHOD: Draw Legend on Top Left ---
-    private void drawLegend(Graphics2D g2) {
-        if (routes == null || routes.isEmpty()) return;
-
-        // Layout constants
-        int padding = 10;
-        int rowHeight = 20;
-        int titleHeight = 25;
-        int boxWidth = 110;
-        int boxHeight = padding * 2 + titleHeight + (routes.size() * rowHeight);
-
-        int x = 10;
-        int y = 600;
-
-        // Draw Legend Background (Semi-transparent)
-        g2.setColor(new Color(255, 255, 255, 230));
-        g2.fillRoundRect(x, y, boxWidth, boxHeight, 10, 10);
-        g2.setColor(Color.GRAY);
-        g2.setStroke(new BasicStroke(1.0f));
-        g2.drawRoundRect(x, y, boxWidth, boxHeight, 10, 10);
-
-        // Draw Title
-        g2.setColor(Color.BLACK);
-        g2.setFont(new Font("SansSerif", Font.BOLD, 12));
-        g2.drawString("Route Legend", x + padding, y + padding + 12);
-
-        // Draw Items
-        int currentY = y + padding + titleHeight + 10; // start drawing rows
-        g2.setFont(new Font("SansSerif", Font.PLAIN, 12));
-
-        // Create a sorted list so buses appear in order (Bus 0, Bus 1...)
-        List<DetailedRoute> sortedRoutes = new ArrayList<>(routes);
-        sortedRoutes.sort(Comparator.comparingInt(DetailedRoute::getBusId));
-
-        for (DetailedRoute route : sortedRoutes) {
-            // Draw Color Line/Box
-            g2.setColor(BUS_COLORS[route.getBusId() % BUS_COLORS.length]);
-            g2.setStroke(new BasicStroke(3.0f));
-            g2.drawLine(x + padding, currentY - 5, x + padding + 20, currentY - 5);
-
-            // Draw Text
-            g2.setColor(Color.BLACK);
-            g2.drawString("Bus " + route.getBusId(), x + padding + 30, currentY);
-
-            currentY += rowHeight;
-        }
-    }
-
     private void drawLabel(Graphics2D g2, String text, int x, int y, boolean isImportant) {
         g2.setFont(new Font("SansSerif", isImportant ? Font.BOLD : Font.PLAIN, 11));
         FontMetrics fm = g2.getFontMetrics();
@@ -292,7 +381,7 @@ public class MapCanvas extends JPanel {
         }
     }
 
-    // --- REVISED COORDINATE CALCULATION WITH VERTICAL STRETCH ---
+    // Responsive co-ordinates calculation
     private void calculateScreenCoordinates() {
         screenCoords.clear();
         double minX = Double.MAX_VALUE, maxX = -Double.MAX_VALUE;

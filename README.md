@@ -9,11 +9,14 @@ A Java-based route optimization system for multi-vehicle routing with traffic co
 - ✅ **Load Balancing**: Ensures fair distribution of routes
 - ✅ **Multiple Algorithms**: Greedy clustering, Nearest Neighbor TSP, 2-Opt optimization
 - ✅ **Multiple Export Formats**: JSON, CSV, DOT (GraphViz), plain text
-- ✅ **Interactive CLI**: User-friendly command-line interface
+- ✅ **Interactive CLI and GUI**: User-friendly command-line interface
+- ✅ **Real-time Visualization**: Watch routes being drawn on the map  
+- ✅ **Interactive Legend**: Toggle specific bus routes on/off  
+- ✅ **Multiple Algorithms**: Greedy clustering, Nearest Neighbor TSP, 2-Opt optimization  
 
 ## System Requirements
 
-- Java 11 or higher
+- Java 17 or higher
 - Maven 3.6 or higher
 
 ## Installation
@@ -66,6 +69,21 @@ Enter hour of day (0-23): 8
    Status: ✓ BALANCED
 ```
 
+### Running the CLI Application
+
+Method 1: Run via Maven
+
+```bash
+mvn exec:java -Dexec.mainClass="com.example.srp.ui.SRPApplication"  
+```
+
+Method 2; Build Executable JAR
+
+```bash
+mvn package  
+java -jar target/Smart-Route-Planner-1.0-SNAPSHOT.jar  
+```
+
 ## Project Structure
 
 ```
@@ -81,7 +99,8 @@ src/
 │   │   ├── models/                # Data models
 │   │   ├── traffic/               # Traffic data handling
 │   │   ├── io/                    # Input/Output utilities
-│   │   └── app/                   # Main applications
+│   │   └── app/                   # Main applications (CLI)  
+│   │   └── ui/                    # Main applications (GUI)  
 │   └── resources/
 │       └── maps/                  # JSON map files
 └── test/
@@ -117,7 +136,7 @@ Maps are defined in JSON format:
 
 ## Algorithms
 
-### Phase A: Shortest Paths
+### Phase A: Shortest Path
 - **Dijkstra's Algorithm**: Finds shortest paths considering traffic
 - **PathCache**: Stores pre-computed pairwise distances
 
@@ -137,50 +156,24 @@ Maps are defined in JSON format:
 - **Detail Generation**: Expands waypoints to full paths
 - **Export**: Multiple output formats
 
-## Running Tests
+## How to Use  
+  
+**1. Load Map**:   
+- Enter the name of your map file (e.g., test_map if you have test_map.json in resources).  
 
-```bash
-# Run all tests
-mvn test
+**2. Configure**:  
+- Set the number of buses available.  
+- Choose your starting Depot node.  
+- Set the departure hour (affects traffic).  
+- Check the boxes for all Mandatory Waypoints the fleet must visit.  
 
-# Run specific test
-mvn test -Dtest=DijkstraTest
+**3.Calculate**:   
+- Click the green button.  
 
-# Run integration tests
-mvn test -Dtest=EndToEndIntegrationTest
-```
-
-## Usage Examples
-
-### Example 1: Basic Route Planning
-
-```java
-MapParser parser = new MapParser();
-Graph graph = parser.parse("map-1");
-
-TrafficStore trafficStore = new JsonTrafficStore(graph);
-PathCache pathCache = buildPathCache(graph, trafficStore, 8);
-
-ClusterAssigner assigner = new GreedyBalancedAssigner(pathCache, 0.5);
-List<NodeCluster> clusters = assigner.assignNodes(
-    Arrays.asList("N2", "N3", "N4"), 
-    "N1", 
-    2
-);
-
-TSPSolver tspSolver = new TwoOptTSP(pathCache, new NearestNeighborTSP(pathCache));
-// ... optimize routes
-```
-
-### Example 2: Exporting Results
-
-```java
-RouteExpander expander = new RouteExpander(pathCache);
-List<DetailedRoute> detailedRoutes = expander.expandRoutes(routes);
-
-RouteExporter exporter = new RouteExporter();
-exporter.exportAll(detailedRoutes, "output/");
-```
+**4. View Results**:  
+- The map will animate the optimal routes.
+- Use the checkbox legend at the bottom-left to hide/show specific buses.
+- View detailed statistics and turn-by-turn directions in the sidebar.
 
 ## Configuration
 
@@ -228,7 +221,8 @@ MIT License - see LICENSE file for details
 
 ## Authors
 
-- Your Name - Initial work
+- Mushfiq Iqbal - Backend
+- Md. Sabbir Hossain - Frontend
 
 ## Acknowledgments
 
